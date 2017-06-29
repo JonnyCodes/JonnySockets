@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>TEST</title>
+    </head>
+    <body>
+        <h1>Socket Tests</h1>
+
+        <input type="text" class="roomCode">
+        <input type="button" class="joinRoom" value="Join Room">
+        <input type="button" class="createRoom" value="Create Room">
+        <input type="button" class="admin" value="Press me" style="display: none;">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+        <script>
+
+            var socket = io("http://192.168.1.3:8080");
+            var roomCode = document.querySelector(".roomCode");
+            var joinRoomBtn = document.querySelector(".joinRoom");
+            var createRoomBtn = document.querySelector(".createRoom");
+
+            createRoomBtn.addEventListener("click", createRoom);
+            joinRoomBtn.addEventListener("click", joinRoom);
+
+            function createRoom() {
+                socket.emit("create room", (data) => {
+                    console.log(data);
+                    roomCode.value = data.roomID;
+                    joinRoomBtn.style.display = "none";
+                    createRoomBtn.style.display = "none";
+
+                    var adminBtn = document.querySelector(".admin");
+                    adminBtn.style.display = "block";
+                    adminBtn.addEventListener("click", function() {
+                        socket.emit("admin clicked");
+                    });
+                });
+
+                socket.on("error", function(error) {
+                    console.log(error);
+                });
+            }
+
+            function joinRoom() {
+                socket.emit("join room", {roomID: roomCode.value});
+
+                socket.on("user joined", function(data) {
+                    console.log(data);
+
+                    roomCode.style.display = "none";
+                    joinRoomBtn.style.display = "none";
+                    createRoomBtn.style.display = "none";
+                });
+
+                socket.on("flash", function() {
+                    setInterval(function() {
+                        document.body.style.background = getRandomColor();
+                    }, 500);
+                });
+            }
+
+            function getRandomColor() {
+                var letters = '0123456789ABCDEF';
+                var color = '#';
+                for (var i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+        </script>
+    </body>
+</html>
